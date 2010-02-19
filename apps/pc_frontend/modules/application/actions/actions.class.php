@@ -293,4 +293,79 @@ class applicationActions extends sfActions
     }
     return sfView::NONE;
   }
+
+ /**
+  * Executes invite
+  *
+  * @param sfWebRequest $request A request object
+  */
+  public function executeInvite(sfWebRequest $request)
+  {
+    $fromMember = $this->getUser()->getMember();
+    $this->pager = Doctrine::getTable('MemberRelationship')->getFriendListPager($fromMember->getId(), 1, 15);
+    $this->installedFriends = Doctrine::getTable('MemberApplication')->getInstalledFriendIds($this->application, $fromMember);
+    $this->form = new BaseForm();
+  }
+
+ /**
+  * Executes invite list
+  *
+  * @param sfWebRequest $request A request object
+  */
+  public function executeInviteList(sfWebRequest $request)
+  {
+    $fromMember = $this->getUser()->getMember();
+    $this->forward404Unless($this->getRequest()->isXmlHttpRequest());
+    $this->pager = Doctrine::getTable('MemberRelationship')->getFriendListPager($fromMember->getId(), $request->getParameter('page'), 15);
+    $this->installedFriends = Doctrine::getTable('MemberApplication')->getInstalledFriendIds($this->application, $fromMember);
+  }
+
+ /**
+  * Executes invite post
+  *
+  * @param sfWebRequest $request A request object
+  */
+  public function executeInvitePost(sfWebRequest $request)
+  {
+    $this->forward404Unless($this->getRequest()->isXmlHttpRequest());
+    $request->checkCSRFProtection();
+
+    $this->getResponse()->setContentType('application/json');
+
+    $ids = $request->getParameter('ids', array());
+    $isValid = true;
+
+    $fromMemberId = $this->getUser()->getMemberId();
+    foreach ($ids as $id)
+    {
+      $memberRelationship = Doctrine::getTable('MemberRelationship')->retrieveByFromAndTo($fromMemberId, $id);
+      if ($memberRelationship && !$memberRelationship->isFriend())
+      {
+        $isValid = false;
+      }
+    }
+
+    if ($isValid)
+    {
+      $resultIds = array();
+      foreach ($ids as $id)
+      {
+        $applicationInvite = Doctrine::getTable('ApplicationInvite')->findOneByApplicationIdAndToMemberId($this->application->getId(), $id);
+        if (!$applicationInvite)
+        {
+          $applicationInvite = new ApplicationInvite();
+          $applicationInvite->setApplication($this->application);
+          $applicationInvite->setToMemberId($id);
+          $applicationInvite->setFromMemberId($fromMemberId);
+          $applicationInvite->save();
+          $resultIds[] = $id;
+        }
+      }
+      return $this->renderText(json_encode($resultIds));
+    }
+    else
+    {
+      return $this->renderText('false');
+    }
+  }
 }

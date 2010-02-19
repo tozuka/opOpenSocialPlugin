@@ -96,6 +96,25 @@ class opOpenSocialPluginFrontendRouteCollection extends sfRouteCollection
         array('module' => 'application', 'action' => 'sort'),
         array('sf_method' => array('post'))
       ),
+      'application_invite' => new sfDoctrineRoute(
+        '/application/invite/:id',
+        array('module' => 'application', 'action' => 'invite'),
+        array('id' => '\d+', 'sf_method' => array('get', 'post')),
+        array('model' => 'MemberApplication', 'type' => 'object')
+      ),
+      'application_invite_list' => new sfDoctrineRoute(
+        '/application/inviteList/:id',
+        array('module' => 'application', 'action' => 'inviteList'),
+        array('id' => '\d+', 'sf_method' => array('get')),
+        array('model' => 'MemberApplication', 'type' => 'object')
+      ),
+      'application_invite_post' => new sfDoctrineRoute(
+        '/application/invitePost/:id',
+        array('module' => 'application', 'action' => 'invitePost'),
+        array('id' => '\d+', 'sf_method' => array('post')),
+        array('model' => 'MemberApplication', 'type' => 'object')
+      ),
+
       'application_nodefaults' => new sfRoute(
         '/application/*',
         array('module' => 'default', 'action' => 'error')
