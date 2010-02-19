@@ -68,13 +68,13 @@ class opOpenSocialPluginFrontendRouteCollection extends sfRouteCollection
         '/application/info/:id',
         array('module' => 'application', 'action' => 'info'),
         array('id' => '\d+'),
-        array('model' => 'Application', 'type' => 'object')
+        array('model' => 'MemberApplication', 'type' => 'object')
       ),
       'application_member' => new sfDoctrineRoute(
         '/application/member/:id',
         array('module' => 'application', 'action' => 'member'),
         array('id' => '\d+'),
-        array('model' => 'Application', 'type' => 'object')
+        array('model' => 'MemberApplication', 'type' => 'object')
       ),
       'application_install' => new sfRoute(
         '/application/install',

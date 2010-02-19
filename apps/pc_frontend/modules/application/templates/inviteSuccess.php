@@ -28,7 +28,7 @@
 <?php javascript_tag() ?>
 var member_ids = [];
 var changePage = function (page) {
-  new Ajax.Request("<?php echo url_for('@application_invite_list?id='.$application->getId()) ?>?page=" + page, {
+  new Ajax.Request("<?php echo url_for('@application_invite_list?id='.$memberApplication->getId()) ?>?page=" + page, {
     method: 'get',
     onCreate: function() {
       $('member_list').innerHTML = '<tr><td colspan="2"><?php echo __('Loading') ?></td></tr>';
@@ -41,6 +41,9 @@ var changePage = function (page) {
           element.checked = true;
         }
       });
+    },
+    onFailure: function(response) {
+      parent.iframeModalBox.close();
     }
   });
 }
@@ -59,7 +62,7 @@ var checkAction = function(obj) {
 var submit = function (f) {
   if (f) {
     $('invite_button').disable();
-    new Ajax.Request('<?php echo url_for('@application_invite_post?id='.$application->getId()) ?>', {
+    new Ajax.Request('<?php echo url_for('@application_invite_post?id='.$memberApplication->getId()) ?>', {
       method: 'post',
       postBody: $H({
         _csrf_token: "<?php echo $form->getCSRFToken() ?>",
@@ -71,6 +74,9 @@ var submit = function (f) {
       onSuccess: function (response) {
         var params = response.responseJSON;
         parent.iframeModalBox.close(params);
+      },
+      onFailure: function (response) {
+        parent.iframeModalBox.close();
       }
     });
   } else {

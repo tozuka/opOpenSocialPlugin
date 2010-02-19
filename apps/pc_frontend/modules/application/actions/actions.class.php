@@ -302,6 +302,7 @@ class applicationActions extends sfActions
   public function executeInvite(sfWebRequest $request)
   {
     $fromMember = $this->getUser()->getMember();
+    $this->forward404Unless($this->application->isHadByMember($fromMember->getId()));
     $this->pager = Doctrine::getTable('MemberRelationship')->getFriendListPager($fromMember->getId(), 1, 15);
     $this->installedFriends = Doctrine::getTable('MemberApplication')->getInstalledFriendIds($this->application, $fromMember);
     $this->form = new BaseForm();
@@ -314,8 +315,10 @@ class applicationActions extends sfActions
   */
   public function executeInviteList(sfWebRequest $request)
   {
-    $fromMember = $this->getUser()->getMember();
     $this->forward404Unless($this->getRequest()->isXmlHttpRequest());
+
+    $fromMember = $this->getUser()->getMember();
+    $this->forward404Unless($this->application->isHadByMember($fromMember->getId()));
     $this->pager = Doctrine::getTable('MemberRelationship')->getFriendListPager($fromMember->getId(), $request->getParameter('page'), 15);
     $this->installedFriends = Doctrine::getTable('MemberApplication')->getInstalledFriendIds($this->application, $fromMember);
   }
@@ -332,13 +335,15 @@ class applicationActions extends sfActions
 
     $this->getResponse()->setContentType('application/json');
 
+    $fromMember = $this->getUser()->getMember();
+    $this->forward404Unless($this->application->isHadByMember($fromMember->getId()));
+
     $ids = $request->getParameter('ids', array());
     $isValid = true;
 
-    $fromMemberId = $this->getUser()->getMemberId();
     foreach ($ids as $id)
     {
-      $memberRelationship = Doctrine::getTable('MemberRelationship')->retrieveByFromAndTo($fromMemberId, $id);
+      $memberRelationship = Doctrine::getTable('MemberRelationship')->retrieveByFromAndTo($fromMember->getId(), $id);
       if ($memberRelationship && !$memberRelationship->isFriend())
       {
         $isValid = false;
@@ -356,7 +361,7 @@ class applicationActions extends sfActions
           $applicationInvite = new ApplicationInvite();
           $applicationInvite->setApplication($this->application);
           $applicationInvite->setToMemberId($id);
-          $applicationInvite->setFromMemberId($fromMemberId);
+          $applicationInvite->setFromMemberId($fromMember->getId());
           $applicationInvite->save();
           $resultIds[] = $id;
         }
