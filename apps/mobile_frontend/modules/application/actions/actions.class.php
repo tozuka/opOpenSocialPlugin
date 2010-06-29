@@ -224,7 +224,7 @@ class applicationActions extends opOpenSocialApplicationActions
     $this->memberApplication = Doctrine::getTable('MemberApplication')
       ->findOneByApplicationAndMember($this->application, $this->member);
     $this->redirectUnless($this->memberApplication, '@application_info?id='.$this->application->getId());
-    $this->location = opOpenSocialLocation::createInstance($request);
+    $this->location = opOpenSocialLocation::createInstance($request, $this->getUser());
   }
 
 
@@ -235,17 +235,26 @@ class applicationActions extends opOpenSocialApplicationActions
   */
   public function executeLocation(sfWebRequest $request)
   {
-    $this->processLocation($request);
+    try
+    {
+      $this->processLocation($request);
+    }
+    catch (LogicException $e)
+    {
+      return sfView::ERROR;
+    }
+
     $this->forward404Unless(in_array($request->getParameter('type'), array('cell', 'gps')));
-    $this->params = array();
+    $params = array();
     if ($request->hasParameter('callback'))
     {
-      $this->params['callback'] = $request->getParameter('callback');
+      $params['callback'] = $request->getParameter('callback');
     }
-    $this->params['method'] = $request->isMethod(sfWebRequest::GET) ? 'GET' : 'POST';
+    $params['method'] = $request->isMethod(sfWebRequest::GET) ? 'GET' : 'POST';
     $t = opToolkit::getRandom();
     $this->getUser()->setFlash('op_opensocial_location_t', $t);
-    $this->params['t'] = $t;
+    $params['t'] = $t;
+    $this->location->setParameters($params);
   }
 
  /**
@@ -255,7 +264,15 @@ class applicationActions extends opOpenSocialApplicationActions
   */
   public function executeAcceptLocation(sfWebRequest $request)
   {
-    $this->processLocation($request);
+    try
+    {
+      $this->processLocation($request);
+    }
+    catch (LogicException $e)
+    {
+      $this->redirect404();
+    }
+
     $t = $this->location->getParameter('t');
     if ($t == $this->getUser()->getFlash('op_opensocial_location_t'))
     {
