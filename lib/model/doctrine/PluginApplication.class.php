@@ -212,4 +212,16 @@ abstract class PluginApplication extends BaseApplication
       ->where('application_id = ?', $this->getId())
       ->count();
   }
+
+ /**
+  * count application users
+  *
+  * @return integer
+  */
+  public function countUsers()
+  {
+    return Doctrine::getTable('MemberApplication')->createQuery()
+      ->where('application_id = ?', $this->getId())
+      ->count();
+  }
 }
